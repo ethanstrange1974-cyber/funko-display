@@ -81,7 +81,7 @@
   }
   .pop {
     width: 120px;
-    height: 180px;
+    height: 200px;
     background: #fff;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(255,255,255,0.3);
@@ -117,15 +117,27 @@
     font-weight: bold;
     line-height: 1.2;
     margin-bottom: 4px;
-    flex-grow: 1;
+    min-height: 24px;
+    max-height: 36px;
     display: flex;
     align-items: center;
+    justify-content: center;
     text-align: center;
+    font-size: 10px;
+    width: 100%;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    hyphens: auto;
   }
   .pop-number {
-    font-size: 10px;
+    font-size: 9px;
     color: #666;
     font-weight: normal;
+    height: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: auto;
   }
   /* Placeholder for broken images */
   .pop img[src=""], .pop img:not([src]) {
@@ -171,7 +183,7 @@
     background: #2a2a2a;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(255,255,255,0.2);
-    min-height: 200px;
+    min-height: 220px;
     padding: 10px;
     display: grid;
     gap: 10px;
@@ -242,7 +254,7 @@
   .shelf-slot {
     background: #3a3a3a;
     border-radius: 6px;
-    height: 180px;
+    height: 200px;
     width: 120px;
     display: flex;
     align-items: center;
@@ -265,7 +277,7 @@
   /* Drag placeholder styling */
   .drag-placeholder {
     width: 120px;
-    height: 180px;
+    height: 200px;
     border: 2px dashed #8af;
     border-radius: 8px;
     box-sizing: border-box;
@@ -320,10 +332,10 @@
   </main>
 </div>
 
-<div class="version-label">v3.1 - Fixed Images & Layout</div>
+<div class="version-label">v3.2 - Better Text Handling & Mobile Ready</div>
 
 <script>
-  // Pop data - using placeholder images for demo, replace with your actual image paths
+  // Pop data - using your actual image paths
   const popsData = [
     { 
       id: "dsupreme", 
@@ -813,4 +825,3 @@
 </script>
 </body>
 </html>
-
