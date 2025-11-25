@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Funko Pop Shelf Manager — Slots per Shelf</title>
+<style>
+  body {
+    margin: 0;
+    background: #1b1b1b;
+    font-family: Arial, sans-serif;
+    color: #ddd;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    background: #222;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+  header button {
+    background: #444;
+    color: #eee;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    user-select: none;
+  }
+  header button:hover {
+    background: #666;
+  }
+  .container {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+  }
+  /* Catalog styles */
+  .catalog {
+    width: 300px;
+    background: #2a2a2a;
+    padding: 10px;
+    border-radius: 8px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .catalog h3 {
+    margin: 0 0 10px;
+    color: #eee;
+    text-align: center;
+  }
+  .filter-group {
+    margin-bottom: 10px;
+  }
+  select {
+    width: 100%;
+    padding: 6px;
+    border-radius: 6px;
+    border: none;
+    font-size: 14px;
+    background: #444;
+    color: #eee;
+    cursor: pointer;
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.7);
+    user-select: none;
+  }
+  select:hover {
+    background: #555;
+  }
+  .catalog-list {
+    flex-grow: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+  }
+  .pop {
+    width: 120px;
+    height: 200px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(255,255,255,0.3);
+    text-align: center;
+    font-size: 11px;
+    color: #000;
+    cursor: grab;
+    user-select: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 6px;
+    box-sizing: border-box;
+    transition: transform 0.2s;
+  }
+  .pop:hover {
+    transform: scale(1.05);
+  }
+  .pop img {
+    width: 108px;
+    height: 140px;
+    object-fit: contain;
+    object-position: center;
+    margin-bottom: 6px;
+    pointer-events: none;
+    user-select: none;
+    border-radius: 4px;
+    background: #f8f8f8;
+    border: 1px solid #eee;
+  }
+  .pop-name {
+    font-weight: bold;
+    line-height: 1.2;
+    margin-bottom: 4px;
+    min-height: 24px;
+    max-height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 10px;
+    width: 100%;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    hyphens: auto;
+  }
+  .pop-number {
+    font-size: 9px;
+    color: #666;
+    font-weight: normal;
+    height: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: auto;
+  }
+  /* Placeholder for broken images */
+  .pop img[src=""], .pop img:not([src]) {
+    background: #f0f0f0;
+    border: 2px dashed #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .pop img[src=""]:after, .pop img:not([src]):after {
+    content: "No Image";
+    color: #999;
+    font-size: 12px;
+  }
+  /* Shelves container */
+  .shelves-container {
+    flex-grow: 1;
+    background: #222;
+    padding: 15px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  .shelves-controls {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 10px;
+  }
+  .shelves-controls button {
+    background: #444;
+    border-radius: 6px;
+    border: none;
+    color: #eee;
+    cursor: pointer;
+    padding: 6px 12px;
+    user-select: none;
+  }
+  .shelves-controls button:hover {
+    background: #666;
+  }
+  .shelf {
+    background: #2a2a2a;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(255,255,255,0.2);
+    min-height: 220px;
+    padding: 10px;
+    display: grid;
+    gap: 10px;
+    grid-auto-flow: column;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    align-items: center;
+    user-select: none;
+    position: relative;
+  }
+  
+  .shelf-container {
+    position: relative;
+    margin-bottom: 15px;
+  }
+  
+  .shelf-controls {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    background: #333;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  
+  .shelf-control-btn {
+    background: #444;
+    border: none;
+    color: #eee;
+    width: 30px;
+    height: 25px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: bold;
+    transition: background 0.2s;
+  }
+  
+  .shelf-control-btn:hover {
+    background: #666;
+  }
+  
+  .shelf-control-btn:first-child {
+    border-bottom: 1px solid #555;
+  }
+  
+  .shelf-label {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    background: rgba(0,0,0,0.7);
+    color: #eee;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    z-index: 5;
+  }
+  .shelf.dragover {
+    outline: 3px dashed #8af;
+  }
+  .shelf-slot {
+    background: #3a3a3a;
+    border-radius: 6px;
+    height: 200px;
+    width: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    cursor: pointer;
+    position: relative;
+    border: 2px dashed #555;
+  }
+  .shelf-slot:empty:before {
+    content: "Empty";
+    color: #777;
+    font-size: 12px;
+  }
+  /* Highlight empty slot on dragover */
+  .shelf-slot.dragover-slot {
+    outline: 3px dashed #48a;
+    background-color: #4a4a6a;
+  }
+  /* Drag placeholder styling */
+  .drag-placeholder {
+    width: 120px;
+    height: 200px;
+    border: 2px dashed #8af;
+    border-radius: 8px;
+    box-sizing: border-box;
+  }
+  .version-label {
+    font-size: 12px;
+    text-align: center;
+    color: #888;
+    padding: 8px 0 4px 0;
+    user-select: none;
+  }
+  /* Error handling for broken images */
+  .pop img {
+    background: #f8f8f8;
+  }
+  .pop img[alt]:after {
+    content: attr(alt);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #999;
+    font-size: 10px;
+    text-align: center;
+    width: 100%;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <button id="resetBtn" title="Reset layout">Reset</button>
+  <button id="addShelfBtn" title="Add Shelf">Add Shelf +</button>
+  <button id="removeShelfBtn" title="Remove Shelf">Remove Shelf -</button>
+
+</header>
+
+<div class="container">
+  <aside class="catalog" aria-label="Funko Pop Catalog">
+    <h3>Pop Catalog</h3>
+    <div class="filter-group">
+      <label for="filterSet">Filter by Set:</label>
+      <select id="filterSet" aria-controls="catalogList">
+        <option value="all">All Sets</option>
+      </select>
+    </div>
+    <div id="catalogList" class="catalog-list" role="list"></div>
+  </aside>
+
+  <main class="shelves-container" aria-label="Funko Pop Shelves" id="shelvesContainer">
+    <!-- Shelves get dynamically inserted here -->
+  </main>
+</div>
+
+<div class="version-label">v3.2 - Better Text Handling & Mobile Ready</div>
+
+<script>
+  // Pop data - using your actual image paths
+  const popsData = [
+    { 
+      id: "dsupreme", 
+      name: "Doctor Strange Supreme", 
+      number: "#874", 
+      img: "1.png", 
+      set: "What If?" 
+    },
+    { 
+      id: "zf", 
+      name: "Zombie Falcon", 
+      number: "#942", 
+      img: "2.png", 
+      set: "What If?" 
+    },
+    { 
+      id: "daryl", 
+      name: "Daryl Dixon", 
+      number: "#145", 
+      img: "3.png", 
+      set: "The Walking Dead" 
+    },
+    { 
+      id: "pennywise", 
+      name: "Pennywise (Chase)", 
+      number: "#472", 
+      img: "4.png", 
+      set: "IT" 
+    },
+    {
+      id: "carl",
+      name: "Carl",
+      number: "#97",
+      img: "5.png",
+      set: "The Walking Dead"
+    },
+    {
+      id: "eleven eggos",
+      name: "Eleven with Eggos",
+      number: "#421",
+      img: "6.png",
+      set: "Stranger Things"
+    },
+    {
+      id: "michonne",
+      name: "Michonne",
+      number: "#38",
+      img: "7.png",
+      set: "The Walking Dead"
+    },
+    {
+      id: "glenn",
+      name: "Prison Glenn Rhee",
+      number: "#151",
+      img: "8.png",
+      set: "The Walking Dead"
+    },
+    {
+      id: "carol",
+      name: "Carol",
+      number: "#156",
+      img: "9.png",
+      set: "The Walking Dead"
+    },
+    {
+      id: "Sasha",
+      name: "Sasha",
+      number: "#577",
+      img: "10.png",
+      set: "The Walking Dead"
+    },
+    {
+      id: "tyreese",
+      name: "Tyreese",
+      number: "#152",
+      img: "11.png",
+      set: "The Walking Dead"
+    },
+    {
+      id: "richard",
+      name: "Richard",
+      number: "#575",
+      img: "12.png",
+      set: "The Walking Dead"
+    },
+    {
+      id: "hershel",
+      name: "Hershel Greene",
+      number: "#153",
+      img: "13.png",
+      set: "The Walking Dead"
+    },
+    {
+      id: "Negan",
+      name: "Negan",
+      number: "#390",
+      img: "14.png",
+      set: "The Walking Dead"
+    },
+    {
+      id: "merle",
+      name: "Merle Dixon",
+      number: "#69",
+      img: "15.png",
+      set: "The Walking Dead"
+    },
+    {
+      id: "Alpha",
+      name: "Alpha",
+      number: "#890",
+      img: "16.png",
+      set: "The Walking Dead"
+    },
+    {
+      id: "killmonger",
+      name: "Erik Killmonger",
+      number: "#278",
+      img: "17.png",
+      set: "Black Panther"
+    },
+    {
+      id: "nakia",
+      name: "Nakia",
+      number: "#385",
+      img: "18.png",
+      set: "Black Panther"
+    },
+    {
+      id: "okoye",
+      name: "Okoye",
+      number: "#385",
+      img: "19.png",
+      set: "Black Panther"
+    },
+    {
+      id: "bp",
+      name: "Black Panther",
+      number: "#274",
+      img: "20.png",
+      set: "Black Panther"
+    },
+    {
+      id: "M'baku",
+      name: "M'baku",
+      number: "#388",
+      img: "21.png",
+      set: "Black Panther"
+    },
+    {
+      id: "M'baku art series",
+      name: "M'baku",
+      number: "#67",
+      img: "22.png",
+      set: "Black Panther"
+    },
+    {
+      id: "shuri art series",
+      name: "Shuri",
+      number: "#69",
+      img: "23.png",
+      set: "Black Panther"
+    },
+    {
+      id: "bp diecast",
+      name: "Black Panther",
+      number: "#06",
+      img: "24.png",
+      set: "MARVEL"
+    },
+  ];
+
+  const catalogList = document.getElementById("catalogList");
+  const filterSet = document.getElementById("filterSet");
+  const shelvesContainer = document.getElementById("shelvesContainer");
+
+  // Shelves data model
+  let shelves = [];
+
+  // Pop elements cache
+  const popElements = {};
+  popsData.forEach(pop => {
+    const div = document.createElement("div");
+    div.className = "pop";
+    div.draggable = true;
+    div.dataset.id = pop.id;
+    div.title = `${pop.name} ${pop.number}`;
+    
+    // Create image element with error handling
+    const img = document.createElement("img");
+    img.src = pop.img;
+    img.alt = `${pop.name} ${pop.number}`;
+    img.onerror = function() {
+      this.style.background = '#f0f0f0';
+      this.style.border = '2px dashed #ccc';
+      this.style.display = 'flex';
+      this.style.alignItems = 'center';
+      this.style.justifyContent = 'center';
+      this.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjI0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjBmMGYwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==';
+    };
+    
+    const nameDiv = document.createElement("div");
+    nameDiv.className = "pop-name";
+    nameDiv.textContent = pop.name;
+    
+    const numberDiv = document.createElement("div");
+    numberDiv.className = "pop-number";
+    numberDiv.textContent = pop.number;
+    
+    div.appendChild(img);
+    div.appendChild(nameDiv);
+    div.appendChild(numberDiv);
+    
+    div.addEventListener("dragstart", dragStart);
+    div.addEventListener("dragend", dragEnd);
+    popElements[pop.id] = div;
+  });
+
+  // Populate filter dropdown
+  function populateFilterOptions() {
+    const sets = Array.from(new Set(popsData.map(p => p.set))).sort();
+    sets.forEach(set => {
+      const option = document.createElement('option');
+      option.value = set;
+      option.textContent = set;
+      filterSet.appendChild(option);
+    });
+  }
+
+  // Render catalog - show Pops not on any shelf
+  function renderCatalog(filter = "all") {
+    catalogList.innerHTML = "";
+    // Which Pops are on shelves?
+    const popsOnShelves = new Set();
+    shelves.forEach(shelf => {
+      shelf.pops.forEach(p => { if(p) popsOnShelves.add(p); });
+    });
+
+    const filtered = filter === "all" ? popsData : popsData.filter(p => p.set === filter);
+
+    filtered.forEach(pop => {
+      if (!popsOnShelves.has(pop.id)) {
+        catalogList.appendChild(popElements[pop.id]);
+      }
+    });
+  }
+
+  // Create shelf DOM element based on shelf data model
+  function createShelfElement(shelfData, shelfIndex) {
+    const shelfContainer = document.createElement("div");
+    shelfContainer.className = "shelf-container";
+    
+    const shelf = document.createElement("div");
+    shelf.className = "shelf";
+    shelf.id = shelfData.id;
+
+    // Setup grid with columns = slots count
+    shelf.style.gridTemplateColumns = `repeat(${shelfData.slots}, 1fr)`;
+
+    // Add shelf label
+    const shelfLabel = document.createElement("div");
+    shelfLabel.className = "shelf-label";
+    shelfLabel.textContent = `Shelf ${shelfIndex + 1} (${shelfData.slots} slots)`;
+    
+    // Add shelf controls
+    const shelfControls = document.createElement("div");
+    shelfControls.className = "shelf-controls";
+    
+    const addSlotBtn = document.createElement("button");
+    addSlotBtn.className = "shelf-control-btn";
+    addSlotBtn.innerHTML = "+";
+    addSlotBtn.title = "Add slot to this shelf";
+    addSlotBtn.addEventListener("click", () => addSlotToShelf(shelfData.id));
+    
+    const removeSlotBtn = document.createElement("button");
+    removeSlotBtn.className = "shelf-control-btn";
+    removeSlotBtn.innerHTML = "−";
+    removeSlotBtn.title = "Remove slot from this shelf";
+    removeSlotBtn.addEventListener("click", () => removeSlotFromShelf(shelfData.id));
+    
+    shelfControls.appendChild(addSlotBtn);
+    shelfControls.appendChild(removeSlotBtn);
+
+    // For each slot, create a div with either a Pop or empty slot
+    shelfData.pops.forEach((popId, idx) => {
+      const slot = document.createElement("div");
+      slot.className = "shelf-slot";
+      slot.dataset.shelf = shelfData.id;
+      slot.dataset.slot = idx;
+
+      if (popId) {
+        const popElem = popElements[popId];
+        if (popElem) {
+          slot.appendChild(popElem);
+        }
+      }
+
+      // Setup drag/drop listeners on slot
+      slot.addEventListener("dragover", slotDragOver);
+      slot.addEventListener("dragleave", slotDragLeave);
+      slot.addEventListener("drop", slotDrop);
+
+      shelf.appendChild(slot);
+    });
+
+    shelfContainer.appendChild(shelfLabel);
+    shelfContainer.appendChild(shelfControls);
+    shelfContainer.appendChild(shelf);
+    
+    return shelfContainer;
+  }
+
+  // Render all shelves to DOM
+  function renderShelves() {
+    shelvesContainer.innerHTML = "";
+    shelves.forEach((shelf, index) => {
+      shelvesContainer.appendChild(createShelfElement(shelf, index));
+    });
+  }
+
+  // Initialize shelves with count and default slots (default 5)
+  function initializeShelves(count = 1, defaultSlots = 5) {
+    shelves = [];
+    for (let i = 0; i < count; i++) {
+      shelves.push({
+        id: `shelf-${i+1}`,
+        slots: defaultSlots,
+        pops: Array(defaultSlots).fill(null),
+      });
+    }
+  }
+
+  // Drag state
+  let draggedPop = null;
+  let draggedFrom = null;
+
+  function dragStart(e) {
+    draggedPop = e.currentTarget;
+    draggedFrom = findPopLocation(draggedPop.dataset.id);
+    e.dataTransfer.setData("text/plain", draggedPop.dataset.id);
+    e.dataTransfer.effectAllowed = "move";
+    setTimeout(() => {
+      draggedPop.style.opacity = "0.5";
+    }, 0);
+  }
+
+  function dragEnd(e) {
+    if (draggedPop) {
+      draggedPop.style.opacity = "1";
+      draggedPop = null;
+      draggedFrom = null;
+    }
+    clearDragOverHighlights();
+  }
+
+  // Helpers to find where a Pop currently is
+  function findPopLocation(popId) {
+    for (let shelf of shelves) {
+      const idx = shelf.pops.indexOf(popId);
+      if (idx !== -1) return {type: "shelf", shelfId: shelf.id, slot: idx};
+    }
+    return {type: "catalog"};
+  }
+
+  // Clear any dragover highlights
+  function clearDragOverHighlights() {
+    document.querySelectorAll(".shelf-slot.dragover-slot").forEach(el => {
+      el.classList.remove("dragover-slot");
+    });
+  }
+
+  // Slot dragover handler
+  function slotDragOver(e) {
+    e.preventDefault();
+    if (!draggedPop) return;
+    clearDragOverHighlights();
+    e.currentTarget.classList.add("dragover-slot");
+  }
+  function slotDragLeave(e) {
+    e.currentTarget.classList.remove("dragover-slot");
+  }
+
+  // Slot drop handler
+  function slotDrop(e) {
+    e.preventDefault();
+    if (!draggedPop) return;
+    const targetSlot = e.currentTarget;
+    const shelfId = targetSlot.dataset.shelf;
+    const slotIndex = parseInt(targetSlot.dataset.slot);
+
+    movePopToShelfSlot(draggedPop.dataset.id, shelfId, slotIndex);
+
+    clearDragOverHighlights();
+    renderShelves();
+    renderCatalog(filterSet.value);
+    saveLayout();
+  }
+
+  // Move pop to shelf slot, handling removal from old place
+  function movePopToShelfSlot(popId, targetShelfId, targetSlot) {
+    // Remove from old location
+    if (draggedFrom) {
+      if (draggedFrom.type === "shelf") {
+        const oldShelf = shelves.find(s => s.id === draggedFrom.shelfId);
+        if (oldShelf) {
+          oldShelf.pops[draggedFrom.slot] = null;
+        }
+      }
+    }
+
+    // If target slot occupied, swap
+    const targetShelf = shelves.find(s => s.id === targetShelfId);
+    if (!targetShelf) return;
+
+    const occupant = targetShelf.pops[targetSlot];
+    if (occupant) {
+      if (draggedFrom && draggedFrom.type === "shelf") {
+        const oldShelf = shelves.find(s => s.id === draggedFrom.shelfId);
+        if (oldShelf) {
+          oldShelf.pops[draggedFrom.slot] = occupant;
+        }
+      }
+    }
+
+    targetShelf.pops[targetSlot] = popId;
+  }
+
+  // Catalog dragover and drop to allow dropping Pops back to catalog
+  catalogList.addEventListener("dragover", e => {
+    e.preventDefault();
+  });
+  catalogList.addEventListener("drop", e => {
+    e.preventDefault();
+    if (!draggedPop) return;
+
+    // Remove pop from shelf if any
+    if (draggedFrom && draggedFrom.type === "shelf") {
+      const oldShelf = shelves.find(s => s.id === draggedFrom.shelfId);
+      if (oldShelf) {
+        oldShelf.pops[draggedFrom.slot] = null;
+      }
+    }
+    renderShelves();
+    renderCatalog(filterSet.value);
+    saveLayout();
+  });
+
+  // Filter change event
+  filterSet.addEventListener("change", () => {
+    renderCatalog(filterSet.value);
+  });
+
+  // Reset button handler
+  document.getElementById("resetBtn").addEventListener("click", () => {
+    initializeShelves(1, 5);
+    renderShelves();
+    renderCatalog();
+    saveLayout();
+  });
+
+  // Add shelf
+  document.getElementById("addShelfBtn").addEventListener("click", () => {
+    shelves.push({
+      id: `shelf-${shelves.length + 1}`,
+      slots: 5,
+      pops: Array(5).fill(null),
+    });
+    renderShelves();
+    saveLayout();
+  });
+
+  // Remove shelf
+  document.getElementById("removeShelfBtn").addEventListener("click", () => {
+    if (shelves.length === 0) return;
+    const lastShelf = shelves[shelves.length - 1];
+    shelves.pop();
+    renderShelves();
+    renderCatalog(filterSet.value);
+    saveLayout();
+  });
+
+  // Add slot to specific shelf
+  function addSlotToShelf(shelfId) {
+    const shelf = shelves.find(s => s.id === shelfId);
+    if (shelf && shelf.slots < 15) {
+      shelf.slots++;
+      shelf.pops.push(null);
+      renderShelves();
+      saveLayout();
+    }
+  }
+
+  // Remove slot from specific shelf
+  function removeSlotFromShelf(shelfId) {
+    const shelf = shelves.find(s => s.id === shelfId);
+    if (shelf && shelf.slots > 1) {
+      const poppedPop = shelf.pops.pop();
+      shelf.slots--;
+      // If there was a pop in the removed slot, it goes back to catalog
+      renderShelves();
+      renderCatalog(filterSet.value);
+      saveLayout();
+    }
+  }
+
+  // Save layout in browser memory (localStorage not supported in artifacts)
+  let savedLayout = null;
+  function saveLayout() {
+    savedLayout = {
+      shelves: shelves.map(shelf => ({
+        id: shelf.id,
+        slots: shelf.slots,
+        pops: shelf.pops,
+      })),
+      filter: filterSet.value,
+    };
+  }
+
+  // Load layout from memory
+  function loadLayout() {
+    if (!savedLayout) return false;
+    try {
+      shelves = savedLayout.shelves.map(shelf => ({
+        id: shelf.id,
+        slots: shelf.slots,
+        pops: shelf.pops,
+      }));
+      renderShelves();
+      filterSet.value = savedLayout.filter || "all";
+      renderCatalog(filterSet.value);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  // Initial setup
+  populateFilterOptions();
+  if (!loadLayout()) {
+    initializeShelves(1, 5);
+    renderShelves();
+    renderCatalog();
+  }
+</script>
+</body>
+</html>
+
+
+
+
+
